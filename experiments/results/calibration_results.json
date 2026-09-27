@@ -1,0 +1,10 @@
+{
+    "calibration_method": "IsotonicRegression",
+    "fit_dataset": "validation",
+    "test_dataset_used": false,
+    "raw_model": "XGBoost",
+    "raw_brier_score": 0.02863229811191559,
+    "raw_ece": 0.0022529415301412114,
+    "calibrated_brier_score": 0.028438759967684746,
+    "calibrated_ece": 2.1950165244916673e-07
+}

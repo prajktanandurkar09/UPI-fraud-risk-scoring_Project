@@ -1,0 +1,18 @@
+{
+    "evaluation_dataset": "test",
+    "calibrator_fit_dataset": "validation",
+    "test_used_for_calibrator_fitting": false,
+    "calibration_method": "IsotonicRegression",
+    "raw": {
+        "brier_score": 0.030467303469777107,
+        "ece": 0.0026999638113696022
+    },
+    "calibrated": {
+        "brier_score": 0.03060278855264187,
+        "ece": 0.004000438494700264
+    },
+    "improvement": {
+        "brier_score": -0.00013548508286476135,
+        "ece": -0.0013004746833306614
+    }
+}

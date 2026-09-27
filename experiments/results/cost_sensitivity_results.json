@@ -1,0 +1,64 @@
+{
+    "analysis": "Validation threshold sensitivity under different false-negative costs.",
+    "false_positive_cost": 1.0,
+    "false_negative_costs": [
+        5.0,
+        10.0,
+        20.0,
+        50.0
+    ],
+    "results": [
+        {
+            "false_positive_cost": 1.0,
+            "false_negative_cost": 5.0,
+            "cost_ratio": "1:5",
+            "optimal_threshold": 0.15000000000000002,
+            "total_cost": 12192.0,
+            "precision": 0.31478209658421674,
+            "recall": 0.351413543721236,
+            "tn": 83212,
+            "fp": 2327,
+            "fn": 1973,
+            "tp": 1069
+        },
+        {
+            "false_positive_cost": 1.0,
+            "false_negative_cost": 10.0,
+            "cost_ratio": "1:10",
+            "optimal_threshold": 0.09,
+            "total_cost": 21427.0,
+            "precision": 0.20973837209302326,
+            "recall": 0.47435897435897434,
+            "tn": 80102,
+            "fp": 5437,
+            "fn": 1599,
+            "tp": 1443
+        },
+        {
+            "false_positive_cost": 1.0,
+            "false_negative_cost": 20.0,
+            "cost_ratio": "1:20",
+            "optimal_threshold": 0.05,
+            "total_cost": 35444.0,
+            "precision": 0.134,
+            "recall": 0.6166995397764629,
+            "tn": 73415,
+            "fp": 12124,
+            "fn": 1166,
+            "tp": 1876
+        },
+        {
+            "false_positive_cost": 1.0,
+            "false_negative_cost": 50.0,
+            "cost_ratio": "1:50",
+            "optimal_threshold": 0.02,
+            "total_cost": 57934.0,
+            "precision": 0.06664968152866242,
+            "recall": 0.8599605522682445,
+            "tn": 48905,
+            "fp": 36634,
+            "fn": 426,
+            "tp": 2616
+        }
+    ]
+}

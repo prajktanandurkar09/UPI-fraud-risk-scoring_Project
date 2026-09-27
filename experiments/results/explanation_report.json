@@ -1,0 +1,104 @@
+{
+    "project": "UPI-SHIELD",
+    "explanation_method": "SHAP TreeExplainer",
+    "interpretation": "SHAP values represent model contributions toward or away from the fraud-risk prediction. They are not causal explanations.",
+    "transaction": {
+        "TransactionDT": 86400,
+        "TransactionAmt": 25.0,
+        "ProductCD": "W",
+        "card1": 10000,
+        "card2": 111.0,
+        "card3": 150.0,
+        "card4": "visa",
+        "card5": 226.0,
+        "card6": "debit",
+        "addr1": 100.0,
+        "addr2": 87.0,
+        "P_emaildomain": "gmail.com",
+        "R_emaildomain": "gmail.com",
+        "DeviceType": "mobile",
+        "DeviceInfo": "Android"
+    },
+    "top_risk_factors": [
+        {
+            "feature": "Transaction amount",
+            "technical_feature": "numeric__TransactionAmt",
+            "shap_value": -0.6351752281188965,
+            "direction": "decreases_risk",
+            "symbol": "\u2193",
+            "message": "\u2193 Transaction amount decreased the model's risk prediction"
+        },
+        {
+            "feature": "Email domain relationship",
+            "technical_feature": "numeric__email_domain_match",
+            "shap_value": 0.43079230189323425,
+            "direction": "increases_risk",
+            "symbol": "\u2191",
+            "message": "\u2191 Email domain relationship increased the model's risk prediction"
+        },
+        {
+            "feature": "Card identifier 1",
+            "technical_feature": "numeric__card1",
+            "shap_value": 0.2624959945678711,
+            "direction": "increases_risk",
+            "symbol": "\u2191",
+            "message": "\u2191 Card identifier 1 increased the model's risk prediction"
+        },
+        {
+            "feature": "Card identifier 3",
+            "technical_feature": "numeric__card3",
+            "shap_value": -0.2392360121011734,
+            "direction": "decreases_risk",
+            "symbol": "\u2193",
+            "message": "\u2193 Card identifier 3 decreased the model's risk prediction"
+        },
+        {
+            "feature": "Transaction time",
+            "technical_feature": "numeric__TransactionDT",
+            "shap_value": -0.22868992388248444,
+            "direction": "decreases_risk",
+            "symbol": "\u2193",
+            "message": "\u2193 Transaction time decreased the model's risk prediction"
+        },
+        {
+            "feature": "Transaction amount decimal component",
+            "technical_feature": "numeric__transaction_amount_decimal",
+            "shap_value": 0.1742122620344162,
+            "direction": "increases_risk",
+            "symbol": "\u2191",
+            "message": "\u2191 Transaction amount decimal component increased the model's risk prediction"
+        },
+        {
+            "feature": "Transaction day",
+            "technical_feature": "numeric__transaction_day",
+            "shap_value": -0.16438928246498108,
+            "direction": "decreases_risk",
+            "symbol": "\u2193",
+            "message": "\u2193 Transaction day decreased the model's risk prediction"
+        },
+        {
+            "feature": "Log-transformed transaction amount",
+            "technical_feature": "numeric__transaction_amount_log",
+            "shap_value": -0.1501392126083374,
+            "direction": "decreases_risk",
+            "symbol": "\u2193",
+            "message": "\u2193 Log-transformed transaction amount decreased the model's risk prediction"
+        },
+        {
+            "feature": "Devicetype Desktop",
+            "technical_feature": "categorical__DeviceType_desktop",
+            "shap_value": 0.1435183584690094,
+            "direction": "increases_risk",
+            "symbol": "\u2191",
+            "message": "\u2191 Devicetype Desktop increased the model's risk prediction"
+        },
+        {
+            "feature": "P Emaildomain Gmail.Com",
+            "technical_feature": "categorical__P_emaildomain_gmail.com",
+            "shap_value": 0.1384173035621643,
+            "direction": "increases_risk",
+            "symbol": "\u2191",
+            "message": "\u2191 P Emaildomain Gmail.Com increased the model's risk prediction"
+        }
+    ]
+}
