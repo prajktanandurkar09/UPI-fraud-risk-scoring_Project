@@ -1,0 +1,79 @@
+from pathlib import Path
+import shutil
+import kagglehub
+
+
+DATASET = "ieee-fraud-detection"
+TARGET_DIR = Path("data/raw")
+
+
+def download_dataset():
+    print("=" * 60)
+    print("IEEE-CIS Fraud Detection Dataset Downloader")
+    print("=" * 60)
+
+    # Create data/raw if it doesn't exist
+    TARGET_DIR.mkdir(parents=True, exist_ok=True)
+
+    print("\nDownloading dataset from Kaggle...")
+    print("This may take some time because the dataset is large.\n")
+
+    try:
+        # Download competition dataset
+        downloaded_path = kagglehub.competition_download(DATASET)
+
+        downloaded_path = Path(downloaded_path)
+
+        print(f"Downloaded to Kaggle cache:")
+        print(downloaded_path)
+
+        # Copy files to our project
+        print("\nCopying files to data/raw/...")
+
+        for file in downloaded_path.iterdir():
+
+            destination = TARGET_DIR / file.name
+
+            if file.is_file():
+                shutil.copy2(file, destination)
+
+                print(f"Copied: {file.name}")
+
+            elif file.is_dir():
+                if destination.exists():
+                    shutil.rmtree(destination)
+
+                shutil.copytree(file, destination)
+
+                print(f"Copied folder: {file.name}")
+
+        print("\n" + "=" * 60)
+        print("DOWNLOAD COMPLETED SUCCESSFULLY")
+        print("=" * 60)
+
+        print("\nFiles in data/raw/:")
+
+        for file in sorted(TARGET_DIR.iterdir()):
+            if file.is_file():
+                size_mb = file.stat().st_size / (1024 * 1024)
+                print(f"  {file.name:<30} {size_mb:,.2f} MB")
+
+    except Exception as error:
+
+        print("\n" + "=" * 60)
+        print("DOWNLOAD FAILED")
+        print("=" * 60)
+
+        print(f"\nError: {error}")
+
+        print("\nPossible reasons:")
+        print("1. Kaggle authentication is incomplete.")
+        print("2. Competition rules have not been accepted.")
+        print("3. Internet connection problem.")
+        print("4. Kaggle temporarily rejected the request.")
+
+        raise
+
+
+if __name__ == "__main__":
+    download_dataset()
