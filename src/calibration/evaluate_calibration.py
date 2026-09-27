@@ -1,8 +1,8 @@
 """
-Probability calibration for UPI-SHIELD.
+Independent evaluation of probability calibration.
 
-The calibrator is fitted using the validation dataset only.
-The test dataset is reserved for final evaluation.
+The calibrator was fitted on validation data.
+The test dataset is used only for final evaluation.
 """
 
 import json
@@ -11,7 +11,6 @@ from pathlib import Path
 import joblib
 import numpy as np
 import pandas as pd
-from sklearn.isotonic import IsotonicRegression
 from sklearn.metrics import brier_score_loss
 
 from src.features.pipeline import engineer_features, prepare_xy
@@ -19,11 +18,11 @@ from src.features.pipeline import engineer_features, prepare_xy
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 
-VALIDATION_PATH = (
+TEST_PATH = (
     PROJECT_ROOT
     / "data"
     / "processed"
-    / "validation.csv"
+    / "test.csv"
 )
 
 PREPROCESSOR_PATH = (
@@ -48,7 +47,7 @@ RESULTS_PATH = (
     PROJECT_ROOT
     / "experiments"
     / "results"
-    / "calibration_results.json"
+    / "calibration_test_results.json"
 )
 
 
@@ -57,11 +56,7 @@ def calculate_ece(
     probabilities,
     n_bins=10,
 ):
-    """
-    Calculate Expected Calibration Error (ECE).
-
-    The probability range [0, 1] is divided into equal-width bins.
-    """
+    """Calculate Expected Calibration Error."""
 
     y_true = np.asarray(y_true)
     probabilities = np.asarray(probabilities)
@@ -92,22 +87,22 @@ def calculate_ece(
         if not np.any(mask):
             continue
 
-        bin_accuracy = np.mean(
+        observed_rate = np.mean(
             y_true[mask]
         )
 
-        bin_confidence = np.mean(
+        mean_probability = np.mean(
             probabilities[mask]
         )
 
-        bin_fraction = np.mean(mask)
+        bin_weight = np.mean(mask)
 
         ece += (
             abs(
-                bin_accuracy
-                - bin_confidence
+                observed_rate
+                - mean_probability
             )
-            * bin_fraction
+            * bin_weight
         )
 
     return float(ece)
@@ -115,22 +110,22 @@ def calculate_ece(
 
 def main():
     print("=" * 60)
-    print("UPI-SHIELD PROBABILITY CALIBRATION")
+    print("UPI-SHIELD INDEPENDENT CALIBRATION EVALUATION")
     print("=" * 60)
 
     # --------------------------------------------------
-    # LOAD DATA
+    # LOAD TEST DATA
     # --------------------------------------------------
 
     print()
-    print("Loading validation dataset...")
+    print("Loading test dataset...")
 
     dataframe = pd.read_csv(
-        VALIDATION_PATH
+        TEST_PATH
     )
 
     print(
-        f"Validation rows: {len(dataframe):,}"
+        f"Test rows: {len(dataframe):,}"
     )
 
     # --------------------------------------------------
@@ -138,19 +133,19 @@ def main():
     # --------------------------------------------------
 
     print(
-        "Engineering validation features..."
+        "Engineering test features..."
     )
 
     dataframe = engineer_features(
         dataframe
     )
 
-    x_validation, y_validation = prepare_xy(
+    x_test, y_test = prepare_xy(
         dataframe
     )
 
     # --------------------------------------------------
-    # LOAD PREPROCESSOR + MODEL
+    # LOAD SAVED ARTIFACTS
     # --------------------------------------------------
 
     print(
@@ -169,17 +164,25 @@ def main():
         MODEL_PATH
     )
 
+    print(
+        "Loading saved calibrator..."
+    )
+
+    calibrator = joblib.load(
+        CALIBRATOR_PATH
+    )
+
     # --------------------------------------------------
-    # TRANSFORM DATA
+    # TRANSFORM TEST DATA
     # --------------------------------------------------
 
     print(
-        "Transforming validation features..."
+        "Transforming test features..."
     )
 
-    x_validation_transformed = (
+    x_test_transformed = (
         preprocessor.transform(
-            x_validation
+            x_test
         )
     )
 
@@ -193,58 +196,8 @@ def main():
 
     raw_probabilities = (
         model.predict_proba(
-            x_validation_transformed
+            x_test_transformed
         )[:, 1]
-    )
-
-    y_validation = y_validation.to_numpy()
-
-    # --------------------------------------------------
-    # RAW CALIBRATION METRICS
-    # --------------------------------------------------
-
-    raw_brier = brier_score_loss(
-        y_validation,
-        raw_probabilities,
-    )
-
-    raw_ece = calculate_ece(
-        y_validation,
-        raw_probabilities,
-    )
-
-    print()
-    print(
-        "RAW XGBOOST CALIBRATION"
-    )
-    print("=" * 60)
-
-    print(
-        f"Brier Score: {raw_brier:.6f}"
-    )
-
-    print(
-        f"ECE:         {raw_ece:.6f}"
-    )
-
-    # --------------------------------------------------
-    # FIT ISOTONIC CALIBRATOR
-    # --------------------------------------------------
-
-    print()
-    print(
-        "Fitting isotonic calibration model..."
-    )
-
-    calibrator = IsotonicRegression(
-        y_min=0.0,
-        y_max=1.0,
-        out_of_bounds="clip",
-    )
-
-    calibrator.fit(
-        raw_probabilities,
-        y_validation,
     )
 
     # --------------------------------------------------
@@ -252,7 +205,7 @@ def main():
     # --------------------------------------------------
 
     print(
-        "Generating calibrated probabilities..."
+        "Applying saved calibrator..."
     )
 
     calibrated_probabilities = (
@@ -261,55 +214,69 @@ def main():
         )
     )
 
+    y_test = y_test.to_numpy()
+
     # --------------------------------------------------
-    # CALIBRATION METRICS
+    # METRICS
     # --------------------------------------------------
 
+    raw_brier = brier_score_loss(
+        y_test,
+        raw_probabilities,
+    )
+
     calibrated_brier = brier_score_loss(
-        y_validation,
+        y_test,
         calibrated_probabilities,
+    )
+
+    raw_ece = calculate_ece(
+        y_test,
+        raw_probabilities,
     )
 
     calibrated_ece = calculate_ece(
-        y_validation,
+        y_test,
         calibrated_probabilities,
     )
 
+    # --------------------------------------------------
+    # RESULTS
+    # --------------------------------------------------
+
     print()
-    print(
-        "CALIBRATED VALIDATION RESULTS"
-    )
+    print("=" * 60)
+    print("TEST CALIBRATION RESULTS")
     print("=" * 60)
 
+    print()
+    print("RAW XGBOOST")
+    print(
+        f"Brier Score: {raw_brier:.6f}"
+    )
+    print(
+        f"ECE:         {raw_ece:.6f}"
+    )
+
+    print()
+    print("CALIBRATED XGBOOST")
     print(
         f"Brier Score: {calibrated_brier:.6f}"
     )
-
     print(
         f"ECE:         {calibrated_ece:.6f}"
     )
 
-    # --------------------------------------------------
-    # SAVE CALIBRATOR
-    # --------------------------------------------------
-
-    CALIBRATOR_PATH.parent.mkdir(
-        parents=True,
-        exist_ok=True,
-    )
-
-    joblib.dump(
-        calibrator,
-        CALIBRATOR_PATH,
+    print()
+    print("Brier improvement:")
+    print(
+        f"{raw_brier - calibrated_brier:.6f}"
     )
 
     print()
+    print("ECE improvement:")
     print(
-        "Calibrator saved to:"
-    )
-
-    print(
-        CALIBRATOR_PATH
+        f"{raw_ece - calibrated_ece:.6f}"
     )
 
     # --------------------------------------------------
@@ -317,18 +284,30 @@ def main():
     # --------------------------------------------------
 
     results = {
+        "evaluation_dataset": "test",
+        "calibrator_fit_dataset": "validation",
+        "test_used_for_calibrator_fitting": False,
         "calibration_method": (
             "IsotonicRegression"
         ),
-        "fit_dataset": "validation",
-        "test_dataset_used": False,
-        "raw_model": "XGBoost",
-        "raw_brier_score": raw_brier,
-        "raw_ece": raw_ece,
-        "calibrated_brier_score": (
-            calibrated_brier
-        ),
-        "calibrated_ece": calibrated_ece,
+        "raw": {
+            "brier_score": raw_brier,
+            "ece": raw_ece,
+        },
+        "calibrated": {
+            "brier_score": calibrated_brier,
+            "ece": calibrated_ece,
+        },
+        "improvement": {
+            "brier_score": (
+                raw_brier
+                - calibrated_brier
+            ),
+            "ece": (
+                raw_ece
+                - calibrated_ece
+            ),
+        },
     }
 
     RESULTS_PATH.parent.mkdir(
@@ -349,16 +328,15 @@ def main():
 
     print()
     print(
-        "Calibration results saved to:"
+        "Results saved to:"
     )
-
     print(
         RESULTS_PATH
     )
 
     print()
     print(
-        "PHASE 7 STEP 1 COMPLETE"
+        "PHASE 7 STEP 2 COMPLETE"
     )
 
 
