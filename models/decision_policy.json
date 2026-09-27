@@ -1,0 +1,11 @@
+{
+    "policy_name": "UPI-SHIELD Cost-Aware Decision Policy",
+    "version": "1.0",
+    "threshold_source": "validation",
+    "fraud_threshold": 0.09,
+    "default_threshold": 0.5,
+    "decision_rule": {
+        "if_probability_below_threshold": "LEGITIMATE",
+        "if_probability_at_or_above_threshold": "FRAUD"
+    }
+}
